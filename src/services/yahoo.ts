@@ -1,12 +1,21 @@
+import axios from 'axios';
+
+const FINNHUB_KEY = process.env.FINNHUB_API_KEY ?? '';
+const FINNHUB_BASE = 'https://finnhub.io/api/v1';
+
 // yahoo-finance2 is ESM-only, so we use dynamic import in CJS context
 let _yf: any = null;
 async function getYF() {
   if (!_yf) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore – yahoo-finance2 is ESM-only; types require node16 resolution
-    const mod = await import('yahoo-finance2');
-    _yf = mod.default;
-    try { _yf.setGlobalConfig({ validation: { logErrors: false } }); } catch {}
+    try {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore – yahoo-finance2 is ESM-only
+      const mod = await import('yahoo-finance2');
+      _yf = mod.default ?? mod;
+      try { _yf.setGlobalConfig({ validation: { logErrors: false } }); } catch {}
+    } catch {
+      _yf = null;
+    }
   }
   return _yf;
 }
@@ -34,9 +43,47 @@ export interface OHLCVBar {
   volume: number;
 }
 
+// Finnhub REST quote — primary source (no ESM issues)
+async function fetchQuoteFinnhub(ticker: string): Promise<Partial<StockQuote> | null> {
+  if (!FINNHUB_KEY) return null;
+  try {
+    const [quoteRes, profileRes] = await Promise.allSettled([
+      axios.get(`${FINNHUB_BASE}/quote`, { params: { symbol: ticker, token: FINNHUB_KEY }, timeout: 5000 }),
+      axios.get(`${FINNHUB_BASE}/stock/profile2`, { params: { symbol: ticker, token: FINNHUB_KEY }, timeout: 5000 }),
+    ]);
+    const q = quoteRes.status === 'fulfilled' ? quoteRes.value.data : null;
+    const p = profileRes.status === 'fulfilled' ? profileRes.value.data : null;
+    if (!q || !q.c || q.c === 0) return null;
+    const prevClose = q.pc ?? q.c;
+    const change = q.d ?? (q.c - prevClose);
+    const changePercent = q.dp ?? (prevClose ? (change / prevClose) * 100 : 0);
+    return {
+      ticker,
+      nameEn: p?.name ?? ticker,
+      exchange: mapExchange(p?.exchange ?? ''),
+      currency: (p?.currency as 'USD' | 'ILS') ?? 'USD',
+      price: q.c,
+      change,
+      changePercent,
+      volume: q.v ?? 0,
+      marketCap: p?.marketCapitalization ? p.marketCapitalization * 1e6 : undefined,
+      updatedAt: new Date().toISOString(),
+    };
+  } catch (err) {
+    console.error(`[Finnhub] Failed to fetch ${ticker}:`, (err as Error).message);
+    return null;
+  }
+}
+
 export async function fetchQuote(ticker: string): Promise<Partial<StockQuote> | null> {
+  // Try Finnhub first (reliable REST API, no ESM issues)
+  const finnhubResult = await fetchQuoteFinnhub(ticker);
+  if (finnhubResult) return finnhubResult;
+
+  // Fallback to Yahoo Finance (ESM dynamic import)
   try {
     const yf = await getYF();
+    if (!yf) return null;
     const result = await yf.quote(ticker);
     return {
       ticker,
