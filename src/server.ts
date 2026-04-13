@@ -70,6 +70,13 @@ async function main() {
     startPricePoller();
   }
 
+  // Fetch news on startup and every 30 minutes
+  if (process.env.NODE_ENV !== 'test') {
+    const { parseAllFeeds } = await import('./services/newsParser');
+    parseAllFeeds().catch(err => console.error('[News] Initial fetch failed:', err));
+    setInterval(() => parseAllFeeds().catch(err => console.error('[News] Scheduled fetch failed:', err)), 30 * 60 * 1000);
+  }
+
   httpServer.listen(PORT, () => {
     console.log(`\n🚀 Tsua API running on http://localhost:${PORT}`);
     console.log(`📡 WebSocket ready`);
