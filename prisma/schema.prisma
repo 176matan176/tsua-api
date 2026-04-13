@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  displayName    String?
+  email          String   @unique
+  passwordHash   String?
+  avatarUrl      String?
+  bio            String?
+  preferredLang  String   @default("he")
+  isVerified     Boolean  @default(false)
+  followerCount  Int      @default(0)
+  followingCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  posts          Post[]
+  likes          PostLike[]
+  alerts         Alert[]
+  roomMessages   RoomMessage[]
+  followers      Follow[] @relation("following")
+  following      Follow[] @relation("follower")
+
+  @@map("users")
+}
+
+model Follow {
+  followerId   String
+  followingId  String
+  createdAt    DateTime @default(now())
+
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@map("follows")
+}
+
+model Stock {
+  id        String   @id @default(uuid())
+  ticker    String   @unique
+  nameEn    String?
+  nameHe    String?
+  exchange  String
+  sectorEn  String?
+  sectorHe  String?
+  currency  String   @default("USD")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  postMentions PostStockMention[]
+  alerts       Alert[]
+  rooms        Room[]
+  newsTags     NewsStockTag[]
+
+  @@map("stocks")
+}
+
+model Post {
+  id           String   @id @default(uuid())
+  authorId     String
+  body         String
+  lang         String
+  sentiment    String?
+  imageUrls    String[] @default([])
+  likeCount    Int      @default(0)
+  replyCount   Int      @default(0)
+  repostCount  Int      @default(0)
+  isDeleted    Boolean  @default(false)
+  parentId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  author        User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent        Post?              @relation("replies", fields: [parentId], references: [id])
+  replies       Post[]             @relation("replies")
+  likes         PostLike[]
+  stockMentions PostStockMention[]
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model PostLike {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@map("post_likes")
+}
+
+model PostStockMention {
+  postId   String
+  stockId  String
+
+  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@id([postId, stockId])
+  @@index([stockId])
+  @@map("post_stock_mentions")
+}
+
+model Room {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  nameEn        String?
+  nameHe        String?
+  descriptionEn String?
+  descriptionHe String?
+  stockId       String?
+  roomType      String   @default("stock")
+  memberCount   Int      @default(0)
+  isOfficial    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  stock    Stock?        @relation(fields: [stockId], references: [id])
+  messages RoomMessage[]
+
+  @@map("rooms")
+}
+
+model RoomMessage {
+  id        String   @id @default(uuid())
+  roomId    String
+  authorId  String
+  body      String
+  lang      String
+  createdAt DateTime @default(now())
+
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@map("room_messages")
+}
+
+model Alert {
+  id          String    @id @default(uuid())
+  userId      String
+  stockId     String
+  alertType   String
+  threshold   Float?
+  isActive    Boolean   @default(true)
+  triggeredAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@index([stockId])
+  @@map("alerts")
+}
+
+model NewsArticle {
+  id          String    @id @default(uuid())
+  source      String?
+  titleHe     String?
+  titleEn     String?
+  summaryHe   String?
+  summaryEn   String?
+  url         String    @unique
+  imageUrl    String?
+  publishedAt DateTime?
+  lang        String?
+  createdAt   DateTime  @default(now())
+
+  stockTags NewsStockTag[]
+
+  @@index([publishedAt])
+  @@map("news_articles")
+}
+
+model NewsStockTag {
+  newsId   String
+  stockId  String
+
+  news  NewsArticle @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  stock Stock       @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@id([newsId, stockId])
+  @@map("news_stock_tags")
+}
