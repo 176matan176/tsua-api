@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci
+RUN npm install
 
 RUN npx prisma generate
 
@@ -23,7 +23,7 @@ ENV NODE_ENV=production
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 RUN npx prisma generate
 
