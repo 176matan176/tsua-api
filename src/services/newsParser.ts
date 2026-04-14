@@ -8,9 +8,13 @@ const parser = new Parser({
 });
 
 const RSS_FEEDS = [
-  { url: 'https://www.themarker.com/srv/rss', source: 'TheMarker', lang: 'he' },
-  { url: 'https://www.calcalist.co.il/srv/rss', source: 'Calcalist', lang: 'he' },
-  { url: 'https://www.globes.co.il/webservice/rss/rss_feed.aspx?show=1', source: 'Globes', lang: 'he' },
+  // Israeli financial & business news
+  { url: 'https://www.israelhayom.co.il/rss/rss.xml?cat=economy', source: 'ישראל היום', lang: 'he' },
+  { url: 'https://www.israelhayom.co.il/rss/rss.xml?cat=finance', source: 'ישראל היום', lang: 'he' },
+  { url: 'https://www.israelhayom.co.il/rss/rss.xml?cat=tech', source: 'ישראל היום', lang: 'he' },
+  { url: 'https://www.maariv.co.il/Rss/RssChadashot', source: 'מעריב', lang: 'he' },
+  { url: 'https://rss.walla.co.il/feed/9', source: 'וואלה!', lang: 'he' },
+  { url: 'https://rss.walla.co.il/feed/22', source: 'וואלה!', lang: 'he' },
 ];
 
 export async function parseAllFeeds(): Promise<number> {
