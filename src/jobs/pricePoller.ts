@@ -5,7 +5,7 @@ import { fetchQuote } from '../services/yahoo';
 import { fetchTaseQuote, isTaseOpen } from '../services/tase';
 import { prisma } from '../lib/prisma';
 const POPULAR_US_TICKERS = ['AAPL','NVDA','TSLA','MSFT','AMZN','GOOGL','META','AMD','INTC','TEVA','NICE','CHKP','CYBR','WIX','MNDY','SPY','QQQ','DIA','IWM','GLD','USO','BTC-USD','ETH-USD'];
-const TA35_TICKERS = ['TEVA.TA','NICE.TA','CHKP.TA','ESLT.TA','LUMI.TA','MZTF.TA','POLI.TA','BEZQ.TA','ICL.TA','NVMI.TA','CAMT.TA'];
+const TA35_TICKERS = ['TEVA.TA','NICE.TA','CHKP.TA','ESLT.TA','LUMI.TA','MZTF.TA','POLI.TA','BEZQ.TA','ICL.TA','NVMI.TA','CAMT.TA','TA125.TA'];
 
 const POLL_INTERVAL_MS = 15_000;
 
