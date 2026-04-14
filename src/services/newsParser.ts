@@ -8,13 +8,16 @@ const parser = new Parser({
 });
 
 const RSS_FEEDS = [
-  // Israeli financial & business news
-  { url: 'https://www.israelhayom.co.il/rss/rss.xml?cat=economy', source: 'ישראל היום', lang: 'he' },
-  { url: 'https://www.israelhayom.co.il/rss/rss.xml?cat=finance', source: 'ישראל היום', lang: 'he' },
-  { url: 'https://www.israelhayom.co.il/rss/rss.xml?cat=tech', source: 'ישראל היום', lang: 'he' },
-  { url: 'https://www.maariv.co.il/Rss/RssChadashot', source: 'מעריב', lang: 'he' },
-  { url: 'https://rss.walla.co.il/feed/9', source: 'וואלה!', lang: 'he' },
-  { url: 'https://rss.walla.co.il/feed/22', source: 'וואלה!', lang: 'he' },
+  // TheMarker — Israeli leading financial newspaper (הארץ כלכלה)
+  { url: 'https://www.themarker.com/srv/tm-markets', source: 'דה מרקר', lang: 'he' },
+  { url: 'https://www.themarker.com/srv/tm-all-articles', source: 'דה מרקר', lang: 'he' },
+  { url: 'https://www.themarker.com/srv/tm-technation', source: 'דה מרקר', lang: 'he' },
+  // Globes — Israeli business newspaper
+  { url: 'https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=1725', source: 'גלובס', lang: 'he' },
+  { url: 'https://www.globes.co.il/WebService/Rss/RssFeeder.asmx/FeederKeyword?iID=1404', source: 'גלובס', lang: 'he' },
+  { url: 'https://www.globes.co.il/WebService/Rss/RssFeeder.asmx/FeederKeyword?iID=1376', source: 'גלובס', lang: 'he' },
+  // Ynet — economy channel
+  { url: 'https://www.ynet.co.il/Integration/StoryRss6.xml', source: 'ynet כלכלה', lang: 'he' },
 ];
 
 export async function parseAllFeeds(): Promise<number> {
